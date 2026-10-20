@@ -175,6 +175,8 @@ export class NetBag {
   private sv = {
     up: new THREE.Vector3(0, 1, 0), a: new THREE.Vector3(), b: new THREE.Vector3(), mid: new THREE.Vector3(), d: new THREE.Vector3(),
   };
+  private hPrev = 1 / 120;   // last Verlet step (time-corrected integration)
+  private dtS = 1 / 60;      // smoothed frame step
   private v = new THREE.Vector3();
   private v2 = new THREE.Vector3();
   private ext: [number, number] = [0, 0];
@@ -542,6 +544,7 @@ export class NetBag {
       this.v.toArray(this.prev, i * 3);
     }
     // let the net find its drape before anyone sees it
+    this.hPrev = 1 / 120;
     if (settle) for (let i = 0; i < 160; i++) this.simulate(1 / 120);
     this.syncVisuals();
   }
@@ -586,7 +589,9 @@ export class NetBag {
   }
 
   update(dt: number, t: number) {
-    dt = Math.min(dt, 1 / 30);
+    // a steadied step: frame times jitter, the cloth shouldn't
+    this.dtS += (Math.min(dt, 1 / 30) - this.dtS) * 0.2;
+    dt = this.dtS;
     const calm = this.reduceMotion ? 0.15 : 1;
 
     // --- the hand: rest + a breath of idle drift, or wherever it's dragged
@@ -629,8 +634,13 @@ export class NetBag {
 
   private simulate(h: number) {
     const P = this.pos, Q = this.prev, IM = this.invMass;
-    const damping = 0.988;
-    const gy = -G_NET * h * h;
+    // time-corrected Verlet: the carried velocity is rescaled by h / h_prev.
+    // Plain Verlet assumes a constant step; with real frame times (which wobble
+    // by milliseconds) it injected a jerk every frame and the net shimmered.
+    const ratio = h / this.hPrev;
+    const damping = 0.988 * ratio;
+    const gy = -G_NET * h * (h + this.hPrev) * 0.5;
+    this.hPrev = h;
 
     // integrate free nodes
     for (let i = 0; i < this.count; i++) {
