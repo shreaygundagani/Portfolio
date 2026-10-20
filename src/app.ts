@@ -620,6 +620,14 @@ export class App {
   /* ---------------------------------------------------------------- loop */
   private loop = () => {
     requestAnimationFrame(this.loop);
+    // a pixel-ratio change resizes (and so clears) the canvas: make it right
+    // before drawing, never after, or the cleared canvas shows for a frame
+    if (this.pendingPR) {
+      this.curPR = this.pendingPR;
+      this.pendingPR = 0;
+      this.renderer.setPixelRatio(this.curPR);
+      this.renderer.setSize(window.innerWidth, window.innerHeight, false);
+    }
     const t0 = performance.now();
     this.guard(() => this.frame(Math.min(this.clockDelta(), 1 / 20)));
     this.adapt(performance.now() - t0);
@@ -642,20 +650,26 @@ export class App {
     return d;
   }
 
+  private pendingPR = 0;    // set by adapt(), applied at the start of a frame
+  private raiseAfter = 0;   // no stepping back up before this (ms)
+  private drops = 0;
   /** drop pixel ratio if frames run long; recover when there's headroom */
   private adapt(ms: number) {
     this.emaMs += (ms - this.emaMs) * 0.05;
     this.prTimer += 1;
     if (this.prTimer < 90) return;
     this.prTimer = 0;
+    const now = performance.now();
     let pr = this.curPR;
-    if (this.emaMs > 22 && pr > 1) pr = Math.max(1, pr - 0.25);
-    else if (this.emaMs < 9 && pr < this.maxPR) pr = Math.min(this.maxPR, pr + 0.25);
-    if (pr !== this.curPR) {
-      this.curPR = pr;
-      this.renderer.setPixelRatio(pr);
-      this.renderer.setSize(window.innerWidth, window.innerHeight, false);
+    if (this.emaMs > 22 && pr > 1) {
+      pr = Math.max(1, pr - 0.25);
+      // after a drop, wait before trying higher again, longer each time:
+      // a machine on the edge mustn't see-saw between sharp and soft
+      this.raiseAfter = now + 4000 * 2 ** Math.min(this.drops++, 4);
+    } else if (this.emaMs < 9 && pr < this.maxPR && now > this.raiseAfter) {
+      pr = Math.min(this.maxPR, pr + 0.25);
     }
+    if (pr !== this.curPR) this.pendingPR = pr; // applied at the start of the next frame
   }
 
   /** the reading tilt — shared by the book and the magazine flying to it */

@@ -70,8 +70,11 @@ one JS file, one CSS file and `og.jpg`). Any static host works.
 - **Netlify / Cloudflare Pages**: build command `npm run build`, publish directory `dist`
   (or drag the `dist/` folder onto Netlify Drop).
 
-After the domain is live, change the `og:image` / `twitter:image` URLs in `index.html`
-to absolute URLs (link previews need them).
+Link previews (WhatsApp, iMessage, Slack, X) need absolute URLs for the share image. The
+build writes them for you: on Vercel it uses the project's production domain (the custom
+domain once one is added), and anywhere else you set it yourself, e.g.
+`SITE_URL=https://your-domain.com npm run build`. It also adds `og:url` and a canonical
+link. With neither set, the tags stay relative.
 
 ## Dev tools
 
@@ -117,6 +120,12 @@ kept off the interactive path:
 - Paper grain is a composited noise tile, not a per-pixel loop.
 - The net's pouch collision uses a precomputed table, and its rest drape is settled
   once.
+- The net steps with time-corrected Verlet on a smoothed frame step, so uneven frame
+  times can't make it shimmer while it hangs still.
+- Resolution adapts to the machine: the pixel ratio steps down under load and back up
+  when there's headroom, waiting longer after each drop so it never see-saws. A change
+  is applied just before a frame is drawn, never after, because resizing clears the
+  canvas (that one blank frame read as a flicker).
 
 ## End-to-end tests
 
