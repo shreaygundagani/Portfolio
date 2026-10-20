@@ -1,0 +1,15 @@
+{
+  "name": "shreya-portfolio-e2e",
+  "private": true,
+  "type": "module",
+  "description": "End-to-end tests: the production build in Chromium, WebKit and Firefox with real input.",
+  "scripts": {
+    "test": "node e2e.mjs",
+    "monkey": "node monkey.mjs chromium-gpu 1 200",
+    "a11y": "node a11y.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.57.0",
+    "axe-core": "4.10.2"
+  }
+}

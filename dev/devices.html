@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>device preview (dev only)</title>
+  <style>
+    html, body { margin: 0; height: 100%; background: #1b1b1b; }
+    body { display: flex; gap: 18px; align-items: flex-start; justify-content: center; padding: 10px; box-sizing: border-box; }
+    .dev { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #aaa; font: 12px system-ui; }
+    iframe { border: 0; background: #fff; transform-origin: top left; }
+    .frame { overflow: hidden; border-radius: 10px; box-shadow: 0 0 0 1px #333; }
+  </style>
+</head>
+<body>
+  <div class="dev"><div class="frame" id="f1"></div><span id="l1"></span></div>
+  <div class="dev"><div class="frame" id="f2"></div><span id="l2"></span></div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const sizes = [[+(params.get('w1') || 390), +(params.get('h1') || 844)], [+(params.get('w2') || 820), +(params.get('h2') || 1180)]];
+    const scale = +(params.get('s') || 0.78);
+    sizes.forEach(([w, h], i) => {
+      const box = document.getElementById('f' + (i + 1));
+      const f = document.createElement('iframe');
+      f.src = '/';
+      f.width = w; f.height = h;
+      f.style.transform = `scale(${scale})`;
+      box.style.width = w * scale + 'px';
+      box.style.height = h * scale + 'px';
+      box.appendChild(f);
+      document.getElementById('l' + (i + 1)).textContent = `${w}×${h}`;
+      window['frame' + (i + 1)] = f;
+    });
+  </script>
+</body>
+</html>

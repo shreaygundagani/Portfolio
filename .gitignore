@@ -1,0 +1,11 @@
+node_modules
+dist
+.DS_Store
+*.local
+.vercel
+.env
+.env.*
+*.stackdump
+tests/e2e/node_modules
+tests/e2e/shots
+tests/e2e/*.png
