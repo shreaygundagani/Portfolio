@@ -419,7 +419,17 @@ body.is-open .mobile-index { opacity: 0; pointer-events: none; visibility: hidde
 
 @media (max-width: 600px) {
   body.is-open .cue { opacity: 0; transition: opacity 0.4s var(--ease); }
-  .masthead__sub { width: auto; padding: 0 var(--gutter); flex-direction: column; align-items: center; gap: 5px; font-size: 8.5px; }
+  /* the dateline splits either side of the handle, two lines a side, so the
+     cords run through the gutter rather than through the words */
+  .masthead__sub { width: auto; padding: 0 var(--gutter-r) 0 var(--gutter-l); font-size: 8.5px; line-height: 1.75; }
+  .masthead__sub > span { text-align: left; }
+  .masthead__sub > span:last-child { text-align: right; margin-right: -0.24em; }
+  .masthead__sub i { display: none; }
+  .masthead__sub .l2 { display: block; white-space: nowrap; }
+}
+@media (max-width: 370px) {
+  .masthead__sub { letter-spacing: 0.16em; }
+  .masthead__sub > span:last-child { margin-right: -0.16em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
